@@ -1,6 +1,6 @@
 \documentclass[12pt]{article}
 \usepackage[margin=1in]{geometry} 
-\usepackage{amsmath, amsthm, amssymb, amsfonts, enumitem, fancyhdr, color, comment, graphicx, environ, tipa, multicol, array, xparse, xcolor, qtree, lastpage, listings, hyperref, bookmark, apacite, multicol, lipsum, algorithm}
+\usepackage{amsmath, amsthm, amssymb, amsfonts, enumitem, fancyhdr, color, comment, graphicx, environ, tipa, multicol, array, xparse, xcolor, qtree, lastpage, listings, hyperref, bookmark, apacite, lipsum, algorithm}
 \pagestyle{fancy}
 \bibliographystyle{apacite}
 
@@ -112,8 +112,11 @@ Das ist deine Hintergrundgeschichte: Ich heiße Paul. Ich bin 26 Jahre alt und m
 Im Folgenden siehst du ein Gespräch zwischen dir und anderen Personen. Vervollständige deine nächste Antwort (beginnend mit 'Ich:'). Versuche, dich auf weniger als 30 Wörter zu beschränken. Antworte auf Deutsch.
 
 Ich: 40 Beitragsjahre sind fair, aber wir müssen auch die finanzielle Stabilität der Rentenkasse im Blick behalten.
+
 Paul: Stimmt, Michel. Aber nach 40 Jahren harte Arbeit ohne Abschläge in Rente gehen zu können, ist auch gerecht und sozial wichtig.
+
 Ich: Klar, Paul, soziale Gerechtigkeit zählt, aber wir dürfen die jüngeren Generationen und die Finanzierung nicht aus den Augen verlieren.
+
 Paul: Die jüngeren verdienen auch faire Chancen, aber wer 40 Jahre einzahlt, hat Anspruch auf sichere Rente ohne Abschläge – das stärkt den sozialen Zusammenhalt.
 \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 \end{quote}
@@ -131,17 +134,18 @@ The analysis will proceed in three steps:
 
 \subsubsection{Analysis of Prompt Sensitivity}
 
-Before investigating the RQs we need to validate that the prompts are stable with regards to the outputs. Since we don't have any ground truth as a benchmark for what we expect from the LLM we are more interested in if different versions of the prompt have consistent results. For this multiple versions of the prompt will be created and using 5 questions from the Wahl-O-Mat we generate the data as explained in section \ref{subsec:data_collection}. From the raw data we then apply the steps as described in section \ref{subsubsex:RQ2} to analyse the distance form the original opinion and the spread of the opinions. We expect no major differences of the resulting values to be found between the different modifications of the prompt. If this is the case we will proceed with the assumption that our research is prompt agnostic, if this is not the case we will need to challenge the prior research by \citeA{taubenfeld_systematic_2024}. 
 
+Before diving into the research questions, we need to check whether the prompts are stable in terms of their outputs. Since we don't have any ground truth to compare against, we're mainly interested in whether different versions of the same prompt lead to consistent results. Also, we can't calculate the POSIX score \cite{chatterjee2024posix} because the responses are too open-ended to expect identical outputs.
 
-\begin{comment}
+Instead, we'll statistically compare the outputs using the survey responses. To do this, we'll create several prompt versions and use five questions from the Wahl-O-Mat, as described in section \ref{subsec:data_collection}, to generate the data. Using this data we'll then fit a linear mixed-effects model (LMM) to see whether small prompt changes have a significant effect on the results. This will eb done using the same agents for each question, which makes comparisons easier, since any variation in output can more confidently be attributed to the prompts rather than the agents bibliography. The LMM will use the following formula:
 
-Due to the prompt sensitivity multiple versions of the prompt will be tested before doing the main research to observe, especially with regards to the format of the prompt. Differently to the prompt sensitivity frameworks \cite{chatterjee2024posix, zhuo2024prosa} there is no right or wrong answer thus making it impossible to detect the prompt with the best result. With regards to the few-shot learning method we argue that this is already incorporated into the prompt by feeding the LLM with the chat history in the same format.
-\end{comment}
+\texttt{Response $\sim$ Prompt + Time + Vote + Question + Question:Time}
+
+This will be applied to all chosen LLMs architectures to ensure that the results are consistent across different models. If there results show that the prompt has a significant effect on the output, we will need to challange the the prior work of \citeA{taubenfeld_systematic_2024}.
 
 
 \subsubsection{RQ1 - Party Alignment:}
-To test whether agents initially align with their party's official stance, we compare the agent’s initial (pre-debate) response to the respective party position as published by Wahl-O-Mat. For this we will map the 7-point likert scale onto the 3-point scale of the Wahl-O-Mat. From this we can measure the alignment between the agents of  a party and the official party stance using Cohen's Kappa.
+To test whether agents initially align with their party's official stance, we compare the agent's initial (pre-debate) response to the respective party position as published by Wahl-O-Mat. For this we will map the 7-point likert scale onto the 3-point scale of the Wahl-O-Mat. From this we can measure the alignment between the agents of a party and the official party stance using Cohen's Kappa.
 
 
 
@@ -173,8 +177,6 @@ Significant interaction effects will indicate whether change over time depends o
 
 
 
-
-
 \appendix
 
 
@@ -187,7 +189,7 @@ Significant interaction effects will indicate whether change over time depends o
 
 Each dyadic debate consists of 20 iterations. Since each of the iterations has the whole conversation until that iteration in the input prompt and the persona description ($\approx$100 tokens) we can calculate the following about of used tokens per dyadic debate. 
 \begin{align*}
-    T^{debate}_{input}(20) &= \sum_{i=0}^{19}(100 * i) + 100 \\
+    T^{debate}_{input}(20) &= \sum_{i=0}^{19} (100 \cdot (i+1)) \\ % Corrected formula
     &= 21000
 \end{align*}.
 
@@ -204,7 +206,7 @@ Each iteration has a max output of 100 tokens. Thus:
 
 
 \begin{align*}
-    T^{debate}_{output}(19) &= \sum_{i=0}^{20}100 \\
+    T^{debate}_{output}(20) &= \sum_{i=0}^{19}100 \\ % Corrected summation limit for 20 iterations
     &= 2{,}000
 \end{align*}.
 
