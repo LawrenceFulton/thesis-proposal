@@ -61,7 +61,7 @@ Following this, \citeA{taubenfeld_systematic_2024} observed a political inherent
 
 \subsection{Prompt Sensitivity}
 
-Large Language Models (LLMs) are known to be highly sensitive to prompt design \cite{sclar2023quantifying, gao2020making, jiang2020can}. \citeA{sclar2023quantifying} demonstrated that even minor, semantically irrelevant changes to prompt formatting can result in substantial variations in model accuracy — this was particularly evident when evaluating LLaMA-2-13B. 
+Large Language Models (LLMs) are known to be highly sensitive to prompt design \cite{sclar2023quantifying, gao2020making, jiang2020can}. \citeA{sclar2023quantifying} demonstrated that even minor, semantically irrelevant changes to prompt formatting can result in substantial variations in model accuracy, which was shown at an an strong example using LLaMA-2-13B. 
 
 In response to such findings, several frameworks have been developed to systematically assess prompt sensitivity, including POSIX (PrOmpt Sensitivity IndeX) \cite{chatterjee2024posix} and ProSA \cite{zhuo2024prosa} which evaluate the variance of the output given differently formatted and framed input. Interestingly, using the ProSA framework, the authors found that larger model size does not necessarily imply greater robustness to prompt variations. For instance, LLaMA3-8B-Instruct outperformed the significantly larger Qwen1.5-72B-Chat on their sensitivity metric.
 
@@ -82,7 +82,7 @@ This leads us to the following research questions:
 
 \section{Data \& Sampling Design}
 
-LLM agents are assigned political profiles based on the GLES (German Longitudinal Election Study) dataset. Due to the size of the GLES datset we will only consider a subset, probably using the variables used by \citeA{hobolt2024polarizing}. Each profile contains attributes such as party affiliation, gender, and strength of affiliation. For this experiment, only agents with high party affiliation (coded as \textit{sehr stark}) are selected, to focus on agents who strongly identify with their political party. Using the last election period there are a total of six parties which were in the German federal parliament are included: CDU, SPD, Greens, FDP, AfD, and The Left. Additionally we add a baseline persona. For each party and for the baseline persona, 10 prototypical profiles is sampled. 
+LLM agents are assigned political profiles based on the GLES (German Longitudinal Election Study) dataset. Due to the size of the GLES dataset we will only consider a subset, probably using the variables used by \citeA{hobolt2024polarizing}. Each profile contains attributes such as party affiliation, gender, and strength of affiliation. For this experiment, only agents with high party affiliation (coded as \textit{sehr stark}) are selected, to focus on agents who strongly identify with their political party. Using the last election period there are a total of six parties which were in the German federal parliament are included: CDU, SPD, Greens, FDP, AfD, and The Left. Additionally we add a baseline persona. For each party and for the baseline persona, 10 prototypical profiles is sampled. 
 
 To generate interactions, all unique profile pairs (including self-pairings) are combined, resulting in a total of 28 pairings. Each pair debates a subset of the 38 Wahl-O-Mat statements, to maintain computational and financial feasibility. This subset will either be hand-picked, or a clustering techniques can be used to find cluster in the questions. Based on these clusters a representative sample could be chosen so that we have 10 questions. Each pair-topic combination is replicated 10 times using different agents. Multiple LLMs (e.g. different sizes or providers) will be used to allow cross-model comparison.
 
@@ -95,7 +95,7 @@ To generate interactions, all unique profile pairs (including self-pairings) are
     \label{fig:enter-label}
 \end{figure}
 \begin{multicols}{2}
-    
+
 
 
 \section{Experiments}
@@ -123,7 +123,7 @@ Paul: Die jüngeren verdienen auch faire Chancen, aber wer 40 Jahre einzahlt, ha
 
 
 
-Every iterations both agents are asked if they agree, are neutral or disagree with the survey item from the Wahl-O-Mat (e.g. "An Bahnhöfen soll die Bundespolizei Software zur automatisierten Gesichtserkennung einsetzen dürfen."). This response is not fed into future prompts but will be used for future data analysis. A key difference between my approach and the approach used by \citeA{taubenfeld_systematic_2024} is that I am using a tertiary choice for the surveys ("stimme zu", "neutral", "stimme nicht zu") and \citeA{taubenfeld_systematic_2024} used a 10 item scale. The reason for this deviation is to be able to match the data better with the data of the Wahl-O-Mat which is needed for the answering of RQ1. Own preliminary research has shown that throughout debates agents will still change their opinions even though the change becomes more significant.  
+Every iterations both agents are asked if they agree, are neutral or disagree with the survey item from the Wahl-O-Mat (e.g. "An Bahnhöfen soll die Bundespolizei Software zur automatisierten Gesichtserkennung einsetzen dürfen."). This response is not fed into future prompts but will be used for future data analysis. A key difference between my approach and the approach used by \citeA{taubenfeld_systematic_2024} is that I am using a Likert scale and \citeA{taubenfeld_systematic_2024} used a 10 item scale. The reason for this deviation is to be able to match the data better with the data of the Wahl-O-Mat which is needed for the answering of RQ1. Own preliminary research has shown that throughout debates agents will still change their opinions even though the change becomes more significant.  
 
 \subsection{Data Analysis}
 
@@ -137,12 +137,15 @@ The analysis will proceed in three steps:
 
 Before diving into the research questions, we need to check whether the prompts are stable in terms of their outputs. Since we don't have any ground truth to compare against, we're mainly interested in whether different versions of the same prompt lead to consistent results. Also, we can't calculate the POSIX score \cite{chatterjee2024posix} because the responses are too open-ended to expect identical outputs.
 
-Instead, we'll statistically compare the outputs using the survey responses. To do this, we'll create several prompt versions and use five questions from the Wahl-O-Mat, as described in section \ref{subsec:data_collection}, to generate the data. Using this data we'll then fit a linear mixed-effects model (LMM) to see whether small prompt changes have a significant effect on the results. This will eb done using the same agents for each question, which makes comparisons easier, since any variation in output can more confidently be attributed to the prompts rather than the agents bibliography. The LMM will use the following formula:
+Instead, we'll statistically compare the outputs using the survey responses. To do this, we'll create four prompt versions and use five questions from the Wahl-O-Mat, as described in section \ref{subsec:data_collection}, to generate the data. These prompt versions will consist of changes with regards to spacing, new lines, and the order of the system instructions. 
+ 
+Using this data we'll then fit a linear mixed-effects model (LMM) to see whether prompt modifications have a significant effect on the results. This will be done using the same agents for each question, which makes comparisons easier, since any variation in output can more confidently be attributed to the prompts rather than the agents. The LMM will use the following formula:
 
-\texttt{Response $\sim$ Prompt + Time + Vote + Question + Question:Time}
+\texttt{Response $\sim$ Prompt + Time + Party + Question + Question:Time}
 
-This will be applied to all chosen LLMs architectures to ensure that the results are consistent across different models. If there results show that the prompt has a significant effect on the output, we will need to challange the the prior work of \citeA{taubenfeld_systematic_2024}.
+Where \texttt{Response} is the Likert scale response, \texttt{Prompt} is the prompt version, \texttt{Time} is the iteration number, \texttt{Party} is the party the agent voted for in the last federal election, and \texttt{Question} is the categorical variable for the question. The interaction term \texttt{Question:Time} is included to see if the effect of time on the response varies by question. Groupings are defined based on the voted party, the voted party of the debate partner, and the prompt version. It's important to note the experimental design: each unique configuration of agent party, debate partner party, prompt version, question, and iteration (\texttt{Time}) is prompted only once to generate a single observation point. However, we fit a linear mixed-effects model to statistically compare the outputs because we have repeated measurements for the units defined by our grouping variable (the combination of voted party, debate partner party, and prompt version) across different questions and iterations (\texttt{Time}). This means observations within these defined groups are not independent, justifying the LMM approach.
 
+This will be applied to all chosen LLMs architectures to ensure that the results are consistent across different models. If there results show that the prompt has a significant effect on the output, we will need to challange the prior work of \citeA{taubenfeld_systematic_2024}.
 
 \subsubsection{RQ1 - Party Alignment:}
 To test whether agents initially align with their party's official stance, we compare the agent's initial (pre-debate) response to the respective party position as published by Wahl-O-Mat. For this we will map the 7-point likert scale onto the 3-point scale of the Wahl-O-Mat. From this we can measure the alignment between the agents of a party and the official party stance using Cohen's Kappa.
@@ -165,7 +168,7 @@ Using the Linear Mixed-Effects Model (LMM) we test if \texttt{change\_from\_star
 
 Second, we want to see if the agents discussing the same topic end up having more similar opinions to each other as the debate progresses. Using the same recorded opinions, we look at the group of agents discussing a specific topic. We calculate how spread out their opinion scores are, using Standard deviation. We track this variance for each topic over the Time of the debate. We want to see if the variance tends to decrease. We can calculate how far each agent's score is from the average score of their group at that specific time point. Then, we use the LMM to see if this distance tends to get smaller over Time. A significant negative effect of Time here would mean agents are getting closer to the group average – they are converging.
 
-\subsubsection{(Stretch-Goal) RQ3/RQ4 – Moderators of Change:}
+\subsubsection{(Stretch-Goal) RQ3/RQ4 - Moderators of Change:}
 To assess whether shifts differ based on party affiliation or gender of the agent, we fit an Ordinal Logistic Regression (OLR) model with interaction terms. The main model specification is:
 
 \texttt{Response $\sim$ Time + Affiliation + Gender + Time:Affiliation + Time:Gender + (covariates)}
