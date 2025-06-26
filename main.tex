@@ -36,7 +36,7 @@
 
 
 
-\title{Thesis Outline}
+\title{Beyond Bipartisanship: Investigating Opinion Shifts and Party Alignment in LLM Agent Simulations of a Multi-Party System}
 \author{Lawrence Fulton (\url{lawrence.fulton@rwth-aachen.de})\\ Computational Social Systems -  RWTH Aachen}
 
 
@@ -82,7 +82,7 @@ This leads us to the following research questions:
 
 \section{Data \& Sampling Design}
 
-LLM agents are assigned political profiles based on the GLES (German Longitudinal Election Study) dataset. Due to the size of the GLES dataset we will only consider a subset, probably using the variables used by \citeA{hobolt2024polarizing}. Each profile contains attributes such as party affiliation, gender, and strength of affiliation. For this experiment, only agents with high party affiliation (coded as \textit{sehr stark}) are selected, to focus on agents who strongly identify with their political party. Using the last election period there are a total of six parties which were in the German federal parliament are included: CDU, SPD, Greens, FDP, AfD, and The Left. Additionally we add a baseline persona. For each party and for the baseline persona, 10 prototypical profiles is sampled. 
+LLM agents are assigned political profiles based on the GLES (German Longitudinal Election Study) dataset. Due to the size of the GLES dataset we will only consider a subset, using the variables used by \citeA{von2024vox}. Each profile contains attributes such as party affiliation, gender, and strength of affiliation. For this experiment, only agents with high party affiliation (coded as \textit{sehr stark}) are selected, to focus on agents who strongly identify with their political party. Using the last election period there are a total of six parties which were in the German federal parliament are included: CDU, SPD, Greens, FDP, AfD, and The Left. Additionally we add a baseline persona. For each of these groups 10 profiles are sampled. 
 
 To generate interactions, all unique profile pairs (including self-pairings) are combined, resulting in a total of 28 pairings. Each pair debates a subset of the 38 Wahl-O-Mat statements, to maintain computational and financial feasibility. This subset will either be hand-picked, or a clustering techniques can be used to find cluster in the questions. Based on these clusters a representative sample could be chosen so that we have 10 questions. Each pair-topic combination is replicated 10 times using different agents. Multiple LLMs (e.g. different sizes or providers) will be used to allow cross-model comparison.
 
@@ -123,7 +123,7 @@ Paul: Die jüngeren verdienen auch faire Chancen, aber wer 40 Jahre einzahlt, ha
 
 
 
-Every iterations both agents are asked if they agree, are neutral or disagree with the survey item from the Wahl-O-Mat (e.g. "An Bahnhöfen soll die Bundespolizei Software zur automatisierten Gesichtserkennung einsetzen dürfen."). This response is not fed into future prompts but will be used for future data analysis. A key difference between my approach and the approach used by \citeA{taubenfeld_systematic_2024} is that I am using a Likert scale and \citeA{taubenfeld_systematic_2024} used a 10 item scale. The reason for this deviation is to be able to match the data better with the data of the Wahl-O-Mat which is needed for the answering of RQ1. Own preliminary research has shown that throughout debates agents will still change their opinions even though the change becomes more significant.  
+Every iterations both debating agents are asked to which extend they agreee with the survey item from the Wahl-O-Mat (e.g. "An Bahnhöfen soll die Bundespolizei Software zur automatisierten Gesichtserkennung einsetzen dürfen."). This response is not fed into future prompts but will be used for future data analysis. A key difference between my approach and the approach used by \citeA{taubenfeld_systematic_2024} is that I am using a 7-point Likert scale and \citeA{taubenfeld_systematic_2024} used a 10 item scale. The reason for this deviation is to be able to match the data better with the data of the Wahl-O-Mat which is needed for the answering of RQ1. Own preliminary research has shown that throughout debates agents will still change their opinions even though the change become more granular.  
 
 \subsection{Data Analysis}
 
@@ -137,7 +137,7 @@ The analysis will proceed in three steps:
 
 Before diving into the research questions, we need to check whether the prompts are stable in terms of their outputs. Since we don't have any ground truth to compare against, we're mainly interested in whether different versions of the same prompt lead to consistent results. Also, we can't calculate the POSIX score \cite{chatterjee2024posix} because the responses are too open-ended to expect identical outputs.
 
-Instead, we'll statistically compare the outputs using the survey responses. To do this, we'll create four prompt versions and use five questions from the Wahl-O-Mat, as described in section \ref{subsec:data_collection}, to generate the data. These prompt versions will consist of changes with regards to spacing, new lines, and the order of the system instructions. 
+Instead, we'll statistically compare the outputs using the survey responses. To do this, we'll create four prompt versions and use five questions from the Wahl-O-Mat, similar to as described in section \ref{subsec:data_collection}, to generate the data. These prompt versions will consist of changes with regards to spacing, new lines, and the order of the system instructions. 
  
 Using this data we'll then fit a linear mixed-effects model (LMM) to see whether prompt modifications have a significant effect on the results. This will be done using the same agents for each question, which makes comparisons easier, since any variation in output can more confidently be attributed to the prompts rather than the agents. The LMM will use the following formula:
 
