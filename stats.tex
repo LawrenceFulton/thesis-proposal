@@ -63,7 +63,7 @@ question\_prompt     & \begin{tabular}[c]{@{}l@{}}Auf einer Skala von 1 bis 7: W
 \label{tab:variables_prompt_sensitivity}
 \end{table}
 
-For each prompt versions there will be two different prompts. The first one (Discussion Prompt) will be used to continue the discussion and the second one (Answer Generation) will be used to generate the numerical answer to the question found in question\_prompt. Thus the question\_prompt placeholder will always only be found in the Answer Generation prompt. The answer from the Discussion Prompt will then be used in future discussions steps and the answer from the Answer Generation will be used later to analyse the change of opinion over time.
+For each prompt versions there will be two different prompts. The first one (Discussion Prompt) will be used to continue the discussion. The second one (Answer Generation) will be used to generate the numerical answer to the question found in question\_prompt. Thus the question\_prompt placeholder will always only be found in the Answer Generation prompt. The answer from the Discussion Prompt will then be used in future discussions steps and the answer from the Answer Generation will be used later to analyse the change of opinion over time.
 
 
 \begin{lstlisting}[caption={Prompt 1 - Discussion Prompt}]
@@ -75,7 +75,6 @@ The following is a a debate between you and another person.
 [User] {user_answer_2}
 {...}
 \end{lstlisting}
-In case we are prompting the model to generate the answer we will use the following prompt:
 \begin{lstlisting}[caption={Prompt 1 - Answer Generation}]
 [System] Scenario: {experiment_scenario}
 Background Story: {background_story}
@@ -89,8 +88,7 @@ The following is a debate between you and and another person. Complete your next
 \end{lstlisting}
 
 
-Instead of only providing the keyword ("Background Story" or "Scenario") we will now provide the full sentence in the system prompt. 
-
+For Prompt 2 we will provide the full sentence in the system prompt instead of only providing the keyword ("Background Story" or "Scenario").
 
 \begin{lstlisting}[caption={Prompt 2 - Discussion Prompt}]
 [System] The scenario is the following: {experiment_scenario}
@@ -101,7 +99,6 @@ The following is a conversation between you and another person. Complete your ne
 [User] {user_answer_2}
 {...}
 \end{lstlisting}
-In case we are prompting the model to generate the answer we will use the following prompt:
 \begin{lstlisting}[caption={Prompt 2 - Answer Generation}]
 [System] The scenario is the following: {experiment_scenario}
 This is your background story: {background_story}
@@ -114,10 +111,7 @@ The following is a conversation between you and another person.
 User: {question_prompt} 
 \end{lstlisting}
 
-
-
-
-The third prompt version we change the tone to be very polite. \citeA{yin2024should} found that the politeness of prompts can significantly affect LLM performance. 
+The third prompt version we change the tone to be very polite. \citeA{yin2024should} found that the politeness of prompts can significantly affect LLM performance.
 
 \begin{lstlisting}[caption={Prompt 3 - Discussion Prompt}]
 [System] Please imagine the following scenario: {experiment_scenario}  
@@ -128,8 +122,6 @@ Kindly respond in German to the next message from another person. Please keep yo
 [User] {user_answer_2}
 {...}
 \end{lstlisting}    
-
-In case we are prompting the model to generate the answer we will use the following prompt:
 \begin{lstlisting}[caption={Prompt 3 - Answer Generation}]
 [System] Please imagine the following scenario: {experiment_scenario}  
 Here is your background: {background_story}  
@@ -146,13 +138,13 @@ Kindly respond in German to the next message from another person.
 \subsubsection{Visualisation}
 To analyse the sensitivity of the model to the different prompts we will run the experiment with each prompt and then compare the results. Since we have seven parties (Die Linke, SPD, Bündnis 90/Die Grünen, FDP, CDU/CSU, AfD, default) and we are testing all parties with all parties this will lead to a total of  $\sum_{i=1}^{7} i = 28$ different combinations of parties. For each combination we will run the experiment with each of the three prompts, leading to a total of $28 \times 3 = 84$ experiments. Each experiment will be repeated 5 times which results in a total of $84 \times 5 = 420$ experiments per question. For now I am only applying it to one question but this is easily extendable to all questions. We prompt the LLM to generate us the answer to the \{question\_prompt\} at every 4th step of the discussion. The LLM will then generate a number between 1 and 7, which is the answer to the question. We will then compare the answers of the LLM for each party and each prompt.
 
-To get a graphical overview over the spread of the results per prompt we have normalised the data for each party at each discussion step. This is done since we expect that members of different parties will have very different opinion to the topics given and this would allow us to compare all of the results. The method used for the normalisation is the Standard Scaler from the sklearn library. The Standard Scaler normalises the data by subtracting the mean and dividing by the standard deviation. This results in a distribution with a mean of 0 and a standard deviation of 1. The results can be seen in the following: 
+To get a graphical overview over the spread of the results per prompt we have normalised the data for each party at each discussion step. This is done since we expect that members of different parties will have very different opinion to the topics given and this would allow us to compare all of the results. The method used for the normalisation is the Standard Scaler from the 'sklearn' library. The Standard Scaler normalises the data by subtracting the mean and dividing by the standard deviation. This results in a distribution with a mean of 0 and a standard deviation of 1. The results can be seen in the following: 
 
 \begin{figure}[h!]
 \centering
 \includegraphics[width=0.8\textwidth]{img/normalised_results.png}
 \caption{Histogram of the normalised results over each party and prompt. The x-axis shows the normalised values and the y-axis shows the frequency of these values. The different colors represent the different prompts used.}
-\label{fig:normalised_results} 
+\label{fig:normalised_results}
 \end{figure}
 
 In Figure \ref{fig:cdu_results} you can see the non-normalised results for the party "CDU/CSU" for each prompt with regards to the the question "Die Förderung von Windenergie soll beendet werden.". One can observe that there is a clear difference in the responses depending on the prompt used based on this example with it appearing that prompt 1 leads to a higher response than prompt 2.
@@ -164,9 +156,11 @@ In Figure \ref{fig:cdu_results} you can see the non-normalised results for the p
 \label{fig:cdu_results}
 \end{figure}
 
-\subsection{Effect Size}
-To quantify the differences between the prompts we will calculate the effect size of the differences between the prompts using the Kruskal-Wallis test. The Kruskal-Wallis test is a non-parametric statistical test that is used to compare the medians of two or more independent groups. Applying the test we see that there is a large effect size ($\eta^2 = 0.041$) for the differences between the prompts which is considered to be a large effect size according to Cohen's conventions \cite{cohen2013statistical}.
 
+\begin{comment}
+\subsubsection{Effect Size}
+To quantify the differences between the prompts we will calculate the effect size of the differences between the prompts using the Kruskal-Wallis test. The Kruskal-Wallis test is a non-parametric statistical test that is used to compare the medians of two or more independent groups. Applying the test we see that there is a large effect size ($\eta^2 = 0.041$) for the differences between the prompts which is considered to be a large effect size according to Cohen's conventions \cite{cohen2013statistical}.
+\end{comment}
 
 
 
@@ -261,7 +255,6 @@ Since we are firstly interested in the convergence of the opinions over time we 
     \text{variance} \sim \text{time} + (1 | \text{prompt}) + (1 | \text{question})
 \end{equation}
 where `variance` is the variance of the opinions, and `time` is the time step. The random effects are the prompt version and the question index. The model shows a significant effect of time onto the variance ($\beta = -0.028, SE = 0.008, z = -3.437, p = 0.001$). This indicates that the variance of the opinions decreases over time, even only slightly. These results have to be interpreted with caution, as the effect size is very limited right now (3 prompts * 2 questions).
-
 
 
 \bibliography{ref}
