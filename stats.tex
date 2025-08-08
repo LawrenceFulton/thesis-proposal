@@ -63,7 +63,8 @@ question\_prompt     & \begin{tabular}[c]{@{}l@{}}Auf einer Skala von 1 bis 7: W
 \label{tab:variables_prompt_sensitivity}
 \end{table}
 
-% code section
+For each prompt versions there will be two different prompts. The first one (Discussion Prompt) will be used to continue the discussion and the second one (Answer Generation) will be used to generate the numerical answer to the question found in question\_prompt. Thus the question\_prompt placeholder will always only be found in the Answer Generation prompt. The answer from the Discussion Prompt will then be used in future discussions steps and the answer from the Answer Generation will be used later to analyse the change of opinion over time.
+
 
 \begin{lstlisting}[caption={Prompt 1 - Discussion Prompt}]
 [System] Scenario: {experiment_scenario}
@@ -88,7 +89,7 @@ The following is a debate between you and and another person. Complete your next
 \end{lstlisting}
 
 
-The second prompt will be more expressive:
+Instead of only providing the keyword ("Background Story" or "Scenario") we will now provide the full sentence in the system prompt. 
 
 
 \begin{lstlisting}[caption={Prompt 2 - Discussion Prompt}]
@@ -116,12 +117,12 @@ User: {question_prompt}
 
 
 
-The third prompt version adds some additional new lines and rewords the instructions slightly:
+The third prompt version we change the tone to be very polite. \citeA{yin2024should} found that the politeness of prompts can significantly affect LLM performance. 
+
 \begin{lstlisting}[caption={Prompt 3 - Discussion Prompt}]
-[System] Scenario: {experiment_scenario}
-Background Story: {background_story}
-You are about to have a conversation with another person.
-Respond to the next message. Please keep your reply under 30 words and in German.
+[System] Please imagine the following scenario: {experiment_scenario}  
+Here is your background: {background_story}  
+Kindly respond in German to the next message from another person. Please keep your reply under 30 words.
 [User] {user_answer}
 [Assistant] {assistant_answer}
 [User] {user_answer_2}
@@ -130,10 +131,9 @@ Respond to the next message. Please keep your reply under 30 words and in German
 
 In case we are prompting the model to generate the answer we will use the following prompt:
 \begin{lstlisting}[caption={Prompt 3 - Answer Generation}]
-[System] Scenario: {experiment_scenario}
-Background Story: {background_story}
-You are about to have a conversation with another person.
-Please reply with only a number.
+[System] Please imagine the following scenario: {experiment_scenario}  
+Here is your background: {background_story}  
+Kindly respond in German to the next message from another person.
 [User] {user_answer}
 [Assistant] {assistant_answer}
 [User] {user_answer_2}
@@ -142,19 +142,32 @@ Please reply with only a number.
 [User] {question_prompt}
 \end{lstlisting}
 
-
 \subsection{Prompt Sensitivity Analysis}
 \subsubsection{Visualisation}
 To analyse the sensitivity of the model to the different prompts we will run the experiment with each prompt and then compare the results. Since we have seven parties (Die Linke, SPD, Bündnis 90/Die Grünen, FDP, CDU/CSU, AfD, default) and we are testing all parties with all parties this will lead to a total of  $\sum_{i=1}^{7} i = 28$ different combinations of parties. For each combination we will run the experiment with each of the three prompts, leading to a total of $28 \times 3 = 84$ experiments. Each experiment will be repeated 5 times which results in a total of $84 \times 5 = 420$ experiments per question. For now I am only applying it to one question but this is easily extendable to all questions. We prompt the LLM to generate us the answer to the \{question\_prompt\} at every 4th step of the discussion. The LLM will then generate a number between 1 and 7, which is the answer to the question. We will then compare the answers of the LLM for each party and each prompt.
 
-To get a graphical overview over the spread of the results per prompt we have normalised the data for each party at each discussion step. This is done since we expect that members of different parties will have very different opinion to the topics given and this would allow us to compare the all of the results. The method used for the normalisation is the Standard Scaler from the sklearn library. The Standard Scaler normalises the data by subtracting the mean and dividing by the standard deviation. This results in a distribution with a mean of 0 and a standard deviation of 1. The results can be seen in the following: 
+To get a graphical overview over the spread of the results per prompt we have normalised the data for each party at each discussion step. This is done since we expect that members of different parties will have very different opinion to the topics given and this would allow us to compare all of the results. The method used for the normalisation is the Standard Scaler from the sklearn library. The Standard Scaler normalises the data by subtracting the mean and dividing by the standard deviation. This results in a distribution with a mean of 0 and a standard deviation of 1. The results can be seen in the following: 
 
 \begin{figure}[h!]
 \centering
 \includegraphics[width=0.8\textwidth]{img/normalised_results.png}
-\caption{Histogram of the normalised results per each party and prompt. The x-axis shows the normalised values and the y-axis shows the frequency of these values. The different colors represent the different prompts used.}
-\label{fig:normalised_results}
+\caption{Histogram of the normalised results over each party and prompt. The x-axis shows the normalised values and the y-axis shows the frequency of these values. The different colors represent the different prompts used.}
+\label{fig:normalised_results} 
 \end{figure}
+
+In Figure \ref{fig:cdu_results} you can see the non-normalised results for the party "CDU/CSU" for each prompt with regards to the the question "Die Förderung von Windenergie soll beendet werden.". One can observe that there is a clear difference in the responses depending on the prompt used based on this example with it appearing that prompt 1 leads to a higher response than prompt 2.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{img/cdu_results.png}
+\caption{Results for the party "CDU/CSU" for the question "Die Förderung von Windenergie soll beendet werden." for each prompt. The x-axis shows the discussion step and the y-axis shows the response of the party.}
+\label{fig:cdu_results}
+\end{figure}
+
+\subsection{Effect Size}
+To quantify the differences between the prompts we will calculate the effect size of the differences between the prompts using the Kruskal-Wallis test. The Kruskal-Wallis test is a non-parametric statistical test that is used to compare the medians of two or more independent groups. Applying the test we see that there is a large effect size ($\eta^2 = 0.041$) for the differences between the prompts which is considered to be a large effect size according to Cohen's conventions \cite{cohen2013statistical}.
+
+
 
 
 \subsubsection{Statistical Analysis}
@@ -163,7 +176,7 @@ To analyse the statistical significance of the differences between the prompts w
 
 In a mixed-effects model, we distinguish between fixed and random effects.
 \begin{itemize}
-    \item \textbf{Fixed Effects} are the variables we want to investigate directly. Our fixed effects are `version` (the prompt version), `party`, `time`, and `question\_index`, excluding their interactions. This allows us to test whether the prompt `version` has a significant effect on the `answer`, and how this effect might change depending on the party or over time.
+    \item \textbf{Fixed Effects} are the variables we want to investigate directly. Our fixed effects are `version` (the prompt version), `party`, and `time`, excluding their interactions. This allows us to test whether the prompt `version` has a significant effect on the `answer`, and how this effect might change depending on the party or over time.
     \item \textbf{Random Effects} account for sources of non-independent variance in the data. In this experiment, multiple answers are generated within the same debate. To account for this clustering, we will include a random intercept for each unique debate session. A debate session is uniquely identified by the combination of the parties debating, the prompt version, and the repetition number.
 \end{itemize}
 
@@ -195,11 +208,12 @@ version[T.out\_1]                & 0.297    & 0.053  & 5.634  & \textless 0.001 
 version[T.out\_2]               & -0.132   & 0.053  & -2.503 & 0.012 \\
 time                            & -0.158   & 0.005  & -30.385& \textless 0.001 \\
 \hline
-\multicolumn{5}{l}{\textit{Note:} Group Var = 0.280. The baseline for `version` is Prompt 1.}
+\multicolumn{5}{l}{\textit{Note:} Group Var = 0.280. The baseline for `version` is Prompt 1 and} \\
+\multicolumn{5}{l}{the baseline for `party` is the default party.}
 \end{tabular}
 \end{table}
 
-The model indicates that the prompt version has a significant impact on the generated answers. Compared to the baseline (Prompt 1), `version[T.out\_1]` (Prompt 2) is associated with a significant increase in the answer value by 0.297 ($\beta = 0.297$, SE = 0.053, $z = 5.634$, $p < 0.001$). Conversely, `version[T.out\_2]` (Prompt 3) is associated with a significant decrease in the answer value by 0.132 ($\beta = -0.132$, SE = 0.053, $z = -2.503$, $p = 0.012$). These results confirm that even slight variations in prompt wording can lead to statistically significant differences in the model's output. As expected, the `party` and `time` variables were also highly significant predictors.
+The model indicates that the prompt version has a significant impact on the generated answers. Compared to the baseline (Prompt 1), `version[T.out\_1]` (Prompt 2) is associated with a significant increase in the answer value by 0.297 ($\beta = 0.297$, SE = 0.053, $z = 5.634$, $p < 0.001$). Additionally, `version[T.out\_2]` (Prompt 3) is associated with a significant decrease in the answer value by 0.132 ($\beta = -0.132$, SE = 0.053, $z = -2.503$, $p = 0.012$). These results confirm that even slight variations in prompt wording can lead to statistically significant differences in the model's output. As expected, the `party` and `time` variables were also significant predictors.
 
 Thus we can conclude that the model is sensitive to the prompt variations, and this sensitivity can be statistically quantified using a mixed-effects model. The results suggest that the choice of prompt can significantly influence the model's responses, which is crucial for interpreting the outcomes of our experiments.
 
@@ -226,7 +240,7 @@ We again use the mixed-effects model to analyse the change of opinion over time.
 \end{equation}
 where `distance` is the distance to the initial opinion, `party` is the party of the agent, and `time` is the time step with the same random effect structure as before. There is a significant effect of time onto the answer  ($\beta = 0.008$, SE = 0.003, $z = 0.008$, $p < 0.004$).
 
-We withhold the variable `version` for now since the categorical value `version` is one-hot encoded. Thus by adding the variable the first version will be considered the baseline. The interactions between time:version thus only show the differences between the versions and the baseline version. Thus if we want to see if time is significant we have to subdivide the data into the different versions and then analyse the significance of time for each version separately. Applying another mixed-effect model on the reduced dataset with only data from one prompt version we will get three further results with all being significant (p=[0.01,\textless 0.001, \textless 0.001]) and positive effect sizes $\beta=[0.008,0.018,0.013]$. 
+We withhold the variable `version` for now since the categorical value `version` is one-hot encoded. Thus by adding the variable the first version will be considered the baseline. The interactions between time:version thus only show the differences between the versions and the baseline version. Therefore if we want to see if time is significant we have to subdivide the data into the different versions and then analyse the significance of time for each version separately. Applying another mixed-effect model on the reduced dataset with only data from one prompt version we will get three further results with all being significant (p=[0.01,\textless 0.001, \textless 0.001]) and positive effect sizes $\beta=[0.008,0.018,0.013]$. 
 
 Thus we can conclude that the distance to the initial opinion is significantly affected by the time step, meaning that the opinions shift over time. Though the effect sizes are fairly small, indicating that the opinions do not change drastically over time. 
 
@@ -244,15 +258,11 @@ To analyse the convergence of the opinions over time, we will calculate the vari
 
 Since we are firstly interested in the convergence of the opinions over time we create the following mixed-effects model:
 \begin{equation}
-    \text{variance} \sim \text{time} + (1 | \text{prompt\_question})
+    \text{variance} \sim \text{time} + (1 | \text{prompt}) + (1 | \text{question})
 \end{equation}
-where `variance` is the variance of the opinions, and `time` is the time step. The prompt\_question now constitutes the random effect and consists out of a combination of the prompt version and the question index. Ideally this will give us a good overview over the convergence of the opinions over time. 
+where `variance` is the variance of the opinions, and `time` is the time step. The random effects are the prompt version and the question index. The model shows a significant effect of time onto the variance ($\beta = -0.028, SE = 0.008, z = -3.437, p = 0.001$). This indicates that the variance of the opinions decreases over time, even only slightly. These results have to be interpreted with caution, as the effect size is very limited right now (3 prompts * 2 questions).
 
-To understand if the variance is getting changing significantly over time we will again have to subdivide the data into the different prompt versions and then analyse the significance of time for each version separately. For this we will be fitting a simple linear mixed model for each with a subset of the data from each prompt version separately as seen in the following:
-\begin{equation}
-    \text{variance} \sim \text{time} + (1 | \text{question})
-\end{equation}
-where `variance` is the variance of the opinions, `time` is the time step, and `question` is the question index.ns.
+
 
 \bibliography{ref}
 \end{document}
