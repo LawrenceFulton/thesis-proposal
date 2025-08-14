@@ -13,8 +13,9 @@
   \refstepcounter{equationset}% Step counter
   \noindent\makebox[\linewidth]{Equation~\theequationset: #1}}% Print caption
 
-
-
+\newcommand{\supervisornote}[1]{%
+  \fcolorbox{red}{white}{\textcolor{red}{#1}}%
+}
  
 
 
@@ -69,7 +70,7 @@ For each prompt versions there will be two different prompts. The first one (Dis
 \begin{lstlisting}[caption={Prompt 1 - Discussion Prompt}]
 [System] Scenario: {experiment_scenario}
 Background Story: {background_story}
-The following is a a debate between you and another person.
+The following is a debate between you and another person. Complete your next reply. Keep the reply shorter than 30 words and in German. 
 [User] {user_answer}
 [Assistant] {assistant_answer}
 [User] {user_answer_2}
@@ -78,7 +79,7 @@ The following is a a debate between you and another person.
 \begin{lstlisting}[caption={Prompt 1 - Answer Generation}]
 [System] Scenario: {experiment_scenario}
 Background Story: {background_story}
-The following is a debate between you and and another person. Complete your next reply. Keep the reply shorter than 30 words and in German. 
+The following is a debate between you and another person.
 [User] {user_answer}
 [Assistant] {assistant_answer}
 [User] {user_answer_2}
@@ -111,7 +112,7 @@ The following is a conversation between you and another person.
 User: {question_prompt} 
 \end{lstlisting}
 
-The third prompt version we change the tone to be very polite. \citeA{yin2024should} found that the politeness of prompts can significantly affect LLM performance.
+The third prompt version we change the tone to be very polite. \citeA{yin2024should} found that the politeness of prompts can significantly affect LLM performance. Additionally we will modify the structure of the background\_story to use the the word "You" over "I", thus resulting in sentences such as "Du bist 75 Jahre alt und männlich. Du hast einen Hauptschulabschluss\dots"
 
 \begin{lstlisting}[caption={Prompt 3 - Discussion Prompt}]
 [System] Please imagine the following scenario: {experiment_scenario}  
